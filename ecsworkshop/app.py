@@ -6,15 +6,18 @@ from aws_cdk import (
     aws_efs as efs,
     aws_logs as logs,
     aws_servicediscovery as sd,
-    core
-)
+    Stack,
+    Fn,
+    CfnOutput,
+    App,
+    Environment)
 
 from os import getenv
 
 
-class ECSFargateEFSDemo(core.Stack):
+class ECSFargateEFSDemo(Stack):
 
-    def __init__(self, scope: core.Stack, id: str, **kwargs) -> None:
+    def __init__(self, scope: Stack, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
         self.environment_name = 'ecsworkshop'
 
@@ -26,14 +29,14 @@ class ECSFargateEFSDemo(core.Stack):
 
         self.sd_namespace = sd.PrivateDnsNamespace.from_private_dns_namespace_attributes(
             self, "SDNamespace",
-            namespace_name=core.Fn.import_value('NSNAME'),
-            namespace_arn=core.Fn.import_value('NSARN'),
-            namespace_id=core.Fn.import_value('NSID')
+            namespace_name=Fn.import_value('NSNAME'),
+            namespace_arn=Fn.import_value('NSARN'),
+            namespace_id=Fn.import_value('NSID')
         )
         
         self.ecs_cluster = ecs.Cluster.from_cluster_attributes(
             self, "ECSCluster",
-            cluster_name=core.Fn.import_value('ECSClusterName'),
+            cluster_name=Fn.import_value('ECSClusterName'),
             security_groups=[],
             vpc=self.vpc,
             default_cloud_map_namespace=self.sd_namespace
@@ -116,58 +119,58 @@ class ECSFargateEFSDemo(core.Stack):
         ## END Logging ##
         
         # Cloudformation Outputs
-        core.CfnOutput(
+        CfnOutput(
             self, "ExecutionRoleARN",
             value=self.task_execution_role.role_arn,
             export_name="ECSFargateEFSDemoTaskExecutionRoleARN"
         )
 
-        core.CfnOutput(
+        CfnOutput(
             self, "EFSID",
             value=self.shared_fs.file_system_id,
             export_name="ECSFargateEFSDemoFSID"
         )
 
-        core.CfnOutput(
+        CfnOutput(
             self, "LBName",
             value=self.load_balancer.load_balancer_name,
             export_name="ECSFargateEFSDemoLBName"
         )
 
-        core.CfnOutput(
+        CfnOutput(
             self, "TargetGroupArn",
             value=self.target_group.target_group_arn,
             export_name="ECSFargateEFSDemoTGARN"
         )
 
-        core.CfnOutput(
+        CfnOutput(
             self, "VPCPrivateSubnets",
             value=",".join([x.subnet_id for x in self.vpc.private_subnets]),
             export_name="ECSFargateEFSDemoPrivSubnets"
         )
 
-        core.CfnOutput(
+        CfnOutput(
             self, "SecurityGroups",
             value="{},{}".format(self.frontend_sec_grp.security_group_id, self.service_sec_grp.security_group_id),
             export_name="ECSFargateEFSDemoSecGrps"
         )
         
-        core.CfnOutput(
+        CfnOutput(
             self, "LBURL",
             value=self.load_balancer.load_balancer_dns_name,
             export_name="ECSFargateEFSDemoLBURL"
         )
 
-        core.CfnOutput(
+        CfnOutput(
             self, "LogGroupName",
             value=self.service_log_group.log_group_name,
             export_name="ECSFargateEFSDemoLogGroupName"
         )
 
 
-app = core.App()
+app = App()
 
-_env = core.Environment(account=getenv('AWS_ACCOUNT_ID'), region=getenv('AWS_DEFAULT_REGION'))
+_env = Environment(account=getenv('AWS_ACCOUNT_ID'), region=getenv('AWS_DEFAULT_REGION'))
 
 ECSFargateEFSDemo(app, "ecsworkshop-efs-fargate-demo", env=_env)
 
