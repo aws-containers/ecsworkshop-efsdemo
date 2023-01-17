@@ -1,7 +1,3 @@
+aws-cdk-lib>=2.50.0,<2.59.0
+constructs>=10.0.0,<11.0.0
 boto3
-aws_cdk.aws_ecs 
-aws_cdk.aws_ec2 
-aws_cdk.aws_elasticloadbalancingv2
-aws_cdk.aws_iam 
-aws_cdk.aws_efs 
-aws_cdk.core
